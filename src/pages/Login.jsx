@@ -1,13 +1,83 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useContext, useEffect } from 'react';
+import { AppContext } from '../data/AppContext';
 import styled from 'styled-components';
 import logo from '../img/instagram.png';
 import appStore from '../img/appstore-img.png';
 import googlePlay from '../img/googleplay-img.png';
 
 const Login = () => {
+  const { setUsername, setIsLoggedIn } = useContext(AppContext);
+  const emailInput = useRef(null);
   const pwInput = useRef(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [pwError, setPwError] = useState(false);
+  const [isValid, setIsValid] = useState(false);
+
+  useEffect(() => {
+    validationCheck();
+  }, [emailError, pwError]);
+
+  const emailValidation = (e) => {
+    const regExp = /^\w+([-]?\w+)*@\w+([-]?\w+)*(\.\w{2,3})+$/;
+    if (!e.target.value) {
+      setEmailError(false);
+    } else if (!regExp.test(e.target.value)) {
+      setEmailError(true);
+    } else {
+      setEmailError(false);
+    }
+  };
+
+  const passwordValidation = (e) => {
+    console.log(e.target.value);
+    const regExp =
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!e.target.value) {
+      setPwError(false);
+    } else if (!regExp.test(e.target.value)) {
+      setPwError(true);
+    } else {
+      setPwError(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (email && password) {
+      if (emailError || pwError) {
+        return;
+      } else if (!emailError && !pwError) {
+        setTimeout(() => {
+          setIsLoggedIn(true);
+        }, 1000);
+      }
+    }
+  };
+
+  const checkEnter = (e) => {
+    if (e.key === 'Enter') {
+      if (e.target === emailInput.current) {
+        pwInput.current.focus();
+      } else if (e.target === pwInput.current) {
+        pwInput.current.blur();
+      }
+    }
+  };
+
+  const validationCheck = () => {
+    if (email && password) {
+      if (!emailError && !pwError) {
+        setIsValid(true);
+      } else {
+        setIsValid(false);
+      }
+    } else {
+      setIsValid(false);
+    }
+  };
 
   return (
     <Container>
@@ -16,25 +86,35 @@ const Login = () => {
           <Logo>
             <LogoImage src={logo} />
           </Logo>
-          <FormStyle>
+          <FormStyle onSubmit={(e) => handleSubmit(e)}>
             <LoginForm>
-              <FormCol>
+              <FormCol color={emailError ? 'red' : null}>
                 <InputStyle
+                  id="email"
                   type="text"
+                  ref={emailInput}
                   placeholder="전화번호, 사용자 이름 또는 이메일"
                   onChange={(e) => setEmail(e.currentTarget.value)}
+                  onBlur={(e) => emailValidation(e)}
+                  // color={emailError ? 'red' : null}
+                  onKeyUp={checkEnter}
                 />
               </FormCol>
-              <FormCol>
+              <FormCol color={pwError ? 'red' : null}>
                 <InputStyle
+                  id="password"
                   type="password"
                   placeholder="비밀번호"
                   ref={pwInput}
                   onChange={(e) => setPassword(e.currentTarget.value)}
+                  onBlur={(e) => passwordValidation(e)}
+                  onKeyUp={checkEnter}
                 />
               </FormCol>
               <LoginButtonDiv>
-                <LoginButton>로그인</LoginButton>
+                <LoginButton color={isValid ? '#0c85fe' : null}>
+                  로그인
+                </LoginButton>
               </LoginButtonDiv>
             </LoginForm>
             <LineBreakerWrap>
@@ -120,7 +200,7 @@ const LoginForm = styled.div`
 `;
 
 const FormCol = styled.div`
-  border: 1px solid #dbdbdb;
+  border: 1px solid ${(props) => props.color || '#dbdbdb'};
   margin: 0 40px 6px;
   border-radius: 3px;
 `;
@@ -130,7 +210,6 @@ const InputStyle = styled.input`
   height: 36px;
   background-color: #f8f8f8;
   padding-left: 10px;
-  color: gray;
 `;
 
 const LoginButtonDiv = styled.div`
@@ -140,7 +219,7 @@ const LoginButton = styled.button`
   height: 36px;
   width: 100%;
   border-radius: 5px;
-  background-color: #1084f8;
+  background-color: ${(props) => props.color || '#92c8fe'};
   color: #fff;
   font-weight: bold;
   cursor: pointer;

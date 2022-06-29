@@ -1,19 +1,36 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../data/AppContext';
+import axios from 'axios';
 import styled from 'styled-components';
 import logo from '../img/instagram.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse } from '@fortawesome/free-solid-svg-icons';
-import { faUser } from '@fortawesome/free-regular-svg-icons';
 import {
+  faUser,
   faPaperPlane,
   faSquarePlus,
   faCompass,
   faHeart,
 } from '@fortawesome/free-regular-svg-icons';
+import Feed from '../components/Feed';
 
 const Main = () => {
   const { setIsLoggedIn } = useContext(AppContext);
+  const [feedLists, setFeedLists] = useState([]);
+
+  useEffect(() => {
+    getFeedList();
+  }, []);
+
+  const getFeedList = async () => {
+    const res = await axios.get('/data/feedList.json');
+
+    if (res && res.data) {
+      setFeedLists(res.data.data);
+    } else {
+      console.debug('no res');
+    }
+  };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
@@ -21,43 +38,51 @@ const Main = () => {
 
   return (
     <MainSection>
-      <MainContainer>
-        <MainFeed>
-          <FeedList></FeedList>
-        </MainFeed>
-        <MainNav>
-          <NavWrap>
-            <NavImg>
-              <img src={logo} alt="" />
-            </NavImg>
-            <NavInput>
-              <input type="text" placeholder="검색" />
-            </NavInput>
-            <NavIconWrap>
-              <NavIcons>
-                <div>
-                  <FontAwesomeIcon icon={faHouse} />
-                </div>
-                <div>
-                  <FontAwesomeIcon icon={faPaperPlane} />
-                </div>
-                <div>
-                  <FontAwesomeIcon icon={faSquarePlus} />
-                </div>
-                <div>
-                  <FontAwesomeIcon icon={faCompass} />
-                </div>
-                <div>
-                  <FontAwesomeIcon icon={faHeart} />
-                </div>
-                <div>
-                  <FontAwesomeIcon icon={faUser} onClick={handleLogout} />
-                </div>
-              </NavIcons>
-            </NavIconWrap>
-          </NavWrap>
-        </MainNav>
-      </MainContainer>
+      {/* <MainContainer> */}
+      {/* <MainFeed> */}
+      <MainFeedWrapper>
+        <FeedList>
+          <MarginDiv />
+          {feedLists &&
+            feedLists.map((feed, idx) => (
+              <Feed key={feed.id + idx} feed={feed} />
+            ))}
+        </FeedList>
+      </MainFeedWrapper>
+      {/* </MainFeed> */}
+      <MainNav>
+        <NavWrap>
+          <NavImg>
+            <img src={logo} alt="" />
+          </NavImg>
+          <NavInput>
+            <input type="text" placeholder="검색" />
+          </NavInput>
+          <NavIconWrap>
+            <NavIcons>
+              <div>
+                <FontAwesomeIcon icon={faHouse} />
+              </div>
+              <div>
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </div>
+              <div>
+                <FontAwesomeIcon icon={faSquarePlus} />
+              </div>
+              <div>
+                <FontAwesomeIcon icon={faCompass} />
+              </div>
+              <div>
+                <FontAwesomeIcon icon={faHeart} />
+              </div>
+              <div>
+                <FontAwesomeIcon icon={faUser} onClick={handleLogout} />
+              </div>
+            </NavIcons>
+          </NavIconWrap>
+        </NavWrap>
+      </MainNav>
+      {/* </MainContainer> */}
     </MainSection>
   );
 };
@@ -176,8 +201,8 @@ const MainFeed = styled.main`
   display: flex;
   flex-flow: row nowrap;
   flex-grow: 1;
-  margin: 0 auto;
   position: relative;
+  margin: 0 auto;
   width: 100%;
 `;
 
@@ -185,7 +210,15 @@ const FeedList = styled.div`
   margin-top: 10px;
   transform: translateY(-56px);
   max-width: 470px;
-  margin-right: 32px;
+  /* margin-right: 32px; */
   float: left;
   width: 100%;
+`;
+
+const MarginDiv = styled.div`
+  margin-top: 130px;
+`;
+
+const MainFeedWrapper = styled.div`
+  margin: 0 auto;
 `;
